@@ -52,12 +52,24 @@ def _resolve_model_path(path: str) -> str | None:
 
 @st.cache_resource(show_spinner=False)
 def load_model(path: str):
+	# Refuse legacy HDF5 explicitly to avoid accidental use
+	if path and path.lower().endswith(".h5"):
+		st.error("MODEL_PATH points to a legacy .h5 file. Please use 'model2.keras'.")
+		return None
+
 	if MODEL_URL:
 		_download_model_if_needed(MODEL_URL, path)
 	resolved = _resolve_model_path(path)
 	if not resolved:
 		return None
-	return tf.keras.models.load_model(resolved)
+	if resolved.lower().endswith(".h5"):
+		st.error("A legacy .h5 model was found. Please remove it and keep 'model2.keras' only.")
+		return None
+	try:
+		return tf.keras.models.load_model(resolved)
+	except Exception as e:
+		st.error(f"Failed to load model: {e}")
+		return None
 
 
 @st.cache_resource(show_spinner=False)
