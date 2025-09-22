@@ -4,13 +4,12 @@ from typing import List
 
 import numpy as np
 import requests
-import gdown
 import streamlit as st
 import tensorflow as tf
 from PIL import Image
 
 
-MODEL_PATH = os.environ.get("MODEL_PATH", "model.h5")
+MODEL_PATH = os.environ.get("MODEL_PATH", "model2.keras")
 LABELS_PATH = os.environ.get("LABELS_PATH", "labels.txt")
 IMG_SIZE = int(os.environ.get("IMG_SIZE", "224"))
 MODEL_URL = os.environ.get("MODEL_URL")
@@ -25,6 +24,11 @@ def _download_model_if_needed(url: str | None, target_path: str) -> None:
 		with st.status("Downloading model...", expanded=False):
 			if "drive.google.com" in url:
 				# Use gdown for Google Drive (handles confirmation tokens)
+				try:
+					import gdown  # lazy import to avoid hard dependency when MODEL_URL is empty
+				except Exception as e:
+					st.error("gdown is required for Google Drive downloads. Install it or provide a direct URL.")
+					raise
 				gdown.download(url, target_path, quiet=False, fuzzy=True)
 			else:
 				with requests.get(url, stream=True, timeout=60) as r:
@@ -38,12 +42,22 @@ def _download_model_if_needed(url: str | None, target_path: str) -> None:
 
 
 @st.cache_resource(show_spinner=False)
+def _resolve_model_path(path: str) -> str | None:
+	candidates = [path, "model2.keras"]
+	for p in candidates:
+		if p and os.path.exists(p):
+			return p
+	return None
+
+
+@st.cache_resource(show_spinner=False)
 def load_model(path: str):
 	if MODEL_URL:
 		_download_model_if_needed(MODEL_URL, path)
-	if not os.path.exists(path):
+	resolved = _resolve_model_path(path)
+	if not resolved:
 		return None
-	return tf.keras.models.load_model(path)
+	return tf.keras.models.load_model(resolved)
 
 
 @st.cache_resource(show_spinner=False)
@@ -71,7 +85,10 @@ def main():
 
 	with st.sidebar:
 		st.subheader("Settings")
+		resolved = _resolve_model_path(MODEL_PATH)
 		st.write(f"Model: {'Loaded' if model is not None else 'Not found'}")
+		st.write(f"MODEL_PATH: {MODEL_PATH}")
+		st.write(f"Resolved: {resolved or 'N/A'}")
 		st.write(f"Image size: {IMG_SIZE}×{IMG_SIZE}")
 		st.write("Labels: " + ", ".join(labels))
 
@@ -81,7 +98,7 @@ def main():
 		st.image(image, caption="Uploaded image", use_column_width=True)
 
 		if model is None:
-			st.error("Model not loaded. Ensure model.h5 is present.")
+			st.error("Model not loaded. Ensure model2.keras is present or MODEL_URL is set.")
 			return
 
 		if st.button("Predict"):

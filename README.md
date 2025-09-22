@@ -16,14 +16,14 @@ streamlit run streamlit_app.py
 3. Repo: YOUR_USER/leukemia-streamlit-classifier, Branch: main
 4. Main file: `streamlit_app.py`
 5. (Optional) Environment variables:
-   - `MODEL_PATH=model.h5`
+   - `MODEL_PATH=model2.keras`
    - `LABELS_PATH=labels.txt`
    - `IMG_SIZE=224`
 6. Deploy and test.
 
 ## Train a model
 ```powershell
-python train.py  # uses MyData/L1,L2,L3; writes model.h5 and labels.txt
+python train.py  # uses MyData/L1,L2,L3; writes model2.keras and labels.txt
 ```
 
 ## Layout
@@ -31,6 +31,6 @@ python train.py  # uses MyData/L1,L2,L3; writes model.h5 and labels.txt
 - `streamlit_app.py` – Streamlit UI
 - `main.py` – FastAPI API (optional)
 - `requirements.txt` – dependencies
-- `model.h5`, `labels.txt` – trained model + labels
+- `model2.keras`, `labels.txt` – trained model + labels
 
 Notes: Keep `MyData/` out of git (see `.gitignore`).

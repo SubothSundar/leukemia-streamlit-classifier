@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main.py train.py ./
 # Copy model and labels if present (build will fail if absent). Ensure you train first.
-COPY model.h5 labels.txt ./
+COPY model2.keras labels.txt ./
 
 EXPOSE 8080
 

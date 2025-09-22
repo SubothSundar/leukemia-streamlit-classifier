@@ -78,7 +78,7 @@ def train_and_save(
 	img_size: Tuple[int, int] = (224, 224),
 	batch_size: int = 32,
 	epochs: int = 10,
-	model_path: str = "model.h5",
+	model_path: str = "model2.keras",
 	labels_path: str = "labels.txt",
 ):
 	train_ds, val_ds, class_names = create_datasets(
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 	img_width = int(os.environ.get("IMG_WIDTH", "224"))
 	batch_size = int(os.environ.get("BATCH_SIZE", "32"))
 	epochs = int(os.environ.get("EPOCHS", "10"))
-	model_path = os.environ.get("MODEL_PATH", "model.h5")
+	model_path = os.environ.get("MODEL_PATH", "model2.keras")
 	labels_path = os.environ.get("LABELS_PATH", "labels.txt")
 
 	train_and_save(

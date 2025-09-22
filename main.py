@@ -28,7 +28,6 @@ def load_model(path: str):
 	candidates = [
 		path,
 		"model2.keras",
-		"model.h5",
 	]
 	for p in candidates:
 		if p and os.path.exists(p):
@@ -81,7 +80,7 @@ def favicon():
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
 	if model is None:
-		raise HTTPException(status_code=503, detail="Model not loaded. Upload model.h5 and labels.txt.")
+		raise HTTPException(status_code=503, detail="Model not loaded. Ensure model2.keras and labels.txt are present.")
 
 	contents = await file.read()
 	try:
