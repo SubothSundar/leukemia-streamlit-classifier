@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Leukemia Classifier</title>
+	<style>
+		:root { --bg:#0b1220; --bg-2:#0f172a; --card:#0f1626; --muted:#9aa4b2; --text:#e7eef7; --accent:#22c55e; --accent-2:#06b6d4; --border:rgba(255,255,255,.08); --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06); }
+		body.light { --bg:#f6f7fb; --bg-2:#ffffff; --card:#ffffff; --muted:#4b5563; --text:#0b1220; --accent:#16a34a; --accent-2:#0ea5e9; --border:rgba(0,0,0,.08); --shadow:0 10px 30px rgba(0,0,0,.08), inset 0 1px 0 rgba(0,0,0,.03); }
+		html,body { height:100%; }
+		body { margin:0; background: radial-gradient(1200px 600px at 10% -10%, rgba(34,197,94,.14), transparent), radial-gradient(900px 400px at 110% 10%, rgba(6,182,212,.1), transparent), linear-gradient(180deg, var(--bg), var(--bg-2)); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif; transition: background .2s ease, color .2s ease; }
+		.container { max-width: 880px; margin: 48px auto; padding: 0 20px; }
+		.card { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+		.header { padding: 22px 26px; border-bottom: 1px solid var(--border); display:flex; align-items:center; gap:14px; justify-content:space-between; }
+		.header-left { display:flex; align-items:center; gap:14px; }
+		.badge { font-size:12px; padding:4px 8px; border-radius:999px; background: rgba(34,197,94,.1); color:#86efac; border:1px solid rgba(34,197,94,.25); letter-spacing:.3px; }
+		.h1 { margin: 2px 0 0; font-weight: 650; font-size: 22px; }
+		.muted { color: var(--muted); font-size: 14px; }
+		.toggle { display:flex; align-items:center; gap:8px; }
+		.switch { position: relative; display:inline-block; width:46px; height:26px; }
+		.switch input { display:none; }
+		.slider { position:absolute; inset:0; background:rgba(255,255,255,.25); border:1px solid var(--border); border-radius:999px; cursor:pointer; transition: .2s; }
+		.slider:before { content:""; position:absolute; height:20px; width:20px; left:3px; top:2px; background:white; border-radius:50%; transition:.2s; }
+		input:checked + .slider { background:linear-gradient(135deg, var(--accent-2), var(--accent)); }
+		input:checked + .slider:before { transform: translateX(20px); }
+		.body { padding: 26px 28px; display:grid; grid-template-columns: 1.2fr .8fr; gap: 24px; }
+		@media (max-width: 900px) { .body { grid-template-columns: 1fr; } }
+		.drop { border: 1px dashed var(--border); border-radius: 14px; padding: 18px; display:flex; gap:18px; background: rgba(255,255,255,.03); align-items:center; }
+		.drop.dragover { border-color: var(--accent-2); background: rgba(6,182,212,.08); }
+		.button { background: linear-gradient(135deg, var(--accent), #16a34a); color:black; font-weight:600; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; }
+		.button.secondary { background: linear-gradient(135deg, var(--accent-2), #0ea5e9); }
+		.button.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+		.button:disabled { opacity:.6; cursor:not-allowed; }
+		.preview { width: 180px; aspect-ratio:1; border-radius:12px; object-fit:cover; border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.2); display:none; }
+		.kv { display:grid; grid-template-columns: 120px 1fr; gap:6px 12px; font-size:14px; margin-top:10px; }
+		.result { margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.2); display:none; }
+		.table { width:100%; border-collapse: collapse; margin-top:8px; display:none; }
+		.table th, .table td { text-align:left; font-size:13px; padding:8px; border-bottom:1px solid rgba(255,255,255,.06); }
+		.progress { height:8px; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden; }
+		.fill { height:100%; background:linear-gradient(90deg, var(--accent-2), var(--accent)); }
+		.footer { padding: 14px 28px 22px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); }
+		.small { font-size:12px; color: var(--muted); }
+		.highlight { outline: 2px solid var(--accent-2); border-radius: 8px; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="card">
+			<div class="header">
+				<div class="header-left">
+					<span class="badge">Leukemia • 3 classes</span>
+					<div>
+						<div class="h1">AI-Powered Leukemia Image Classification</div>
+						<div class="muted">Upload a cell image to predict: L1, L2, or L3</div>
+					</div>
+				</div>
+				<div class="toggle">
+					<span class="muted small">Theme</span>
+					<label class="switch"><input id="theme" type="checkbox" /><span class="slider"></span></label>
+				</div>
+			</div>
+			<div class="body">
+				<div>
+					<div class="drop" id="drop">
+						<img id="preview" class="preview" alt="preview" />
+						<div>
+							<div class="muted" style="margin-bottom:8px">Choose or drag-and-drop an image (JPG/PNG/TIF)</div>
+							<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+								<label class="button" for="file">Select image</label>
+								<input id="file" type="file" accept="image/*" style="display:none" />
+								<button id="predict" class="button secondary" disabled>Predict</button>
+								<button id="reset" class="button ghost">Reset</button>
+							</div>
+							<div id="filename" class="small muted" style="margin-top:6px"></div>
+							<div class="kv">
+								<div class="muted">Model</div><div>Loaded</div>
+								<div class="muted">Image size</div><div>224×224</div>
+								<div class="muted">Labels</div><div>L1, L2, L3</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div class="muted">Prediction</div>
+					<div id="result" class="result"></div>
+					<table id="probs" class="table"><thead><tr><th>Class</th><th style="width:70%">Confidence</th><th>Score</th></tr></thead><tbody></tbody></table>
+				</div>
+			</div>
+			<div class="footer">
+				<div class="muted">This demo runs locally on your machine.</div>
+				<a class="muted" href="/healthz" target="_blank">Health</a>
+			</div>
+		</div>
+	</div>
+
+	<script>
+	(function(){
+		const themeToggle = document.getElementById('theme');
+		const saved = localStorage.getItem('theme');
+		if (saved === 'light') { document.body.classList.add('light'); themeToggle.checked = true; }
+		themeToggle.addEventListener('change', () => {
+			document.body.classList.toggle('light', themeToggle.checked);
+			localStorage.setItem('theme', themeToggle.checked ? 'light' : 'dark');
+		});
+
+		const fileInput = document.getElementById('file');
+		const preview = document.getElementById('preview');
+		const predictBtn = document.getElementById('predict');
+		const resetBtn = document.getElementById('reset');
+		const result = document.getElementById('result');
+		const probsTable = document.getElementById('probs');
+		const tbody = probsTable.querySelector('tbody');
+		const filenameEl = document.getElementById('filename');
+		const drop = document.getElementById('drop');
+
+		fileInput.addEventListener('change', () => {
+			const f = fileInput.files[0];
+			if (!f) { predictBtn.disabled = true; return; }
+			predictBtn.disabled = false;
+			filenameEl.textContent = f.name + ' • ' + Math.round(f.size/1024) + ' KB';
+			const reader = new FileReader();
+			reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; }
+			reader.readAsDataURL(f);
+		});
+
+		['dragenter','dragover'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.add('dragover'); }));
+		['dragleave','drop'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.remove('dragover'); }));
+		drop.addEventListener('drop', e => {
+			const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+			if (!f) return;
+			const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files;
+			fileInput.dispatchEvent(new Event('change'));
+		});
+
+		predictBtn.addEventListener('click', async (e) => {
+			e.preventDefault();
+			const f = fileInput.files[0];
+			if (!f) return;
+			predictBtn.disabled = true; predictBtn.textContent = 'Predicting...';
+			result.style.display = 'block'; result.innerHTML = '<span class="small">Running inference...</span>';
+			tbody.innerHTML = ''; probsTable.style.display = 'none';
+			try {
+				const fd = new FormData(); fd.append('file', f);
+				const res = await fetch('/predict', { method: 'POST', body: fd });
+				if (!res.ok) throw new Error('Request failed');
+				const data = await res.json();
+				result.innerHTML = `<strong>Predicted:</strong> <span style="padding:4px 8px;border-radius:999px;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.35)">${data.prediction}</span>`;
+				const entries = Object.entries(data.probabilities || {}).sort((a,b)=>b[1]-a[1]);
+				for (const [label, score] of entries) {
+					const pct = Math.max(0, Math.min(100, (score*100).toFixed(1)));
+					const tr = document.createElement('tr');
+					tr.innerHTML = `<td>${label}</td><td><div class='progress'><div class='fill' style='width:${pct}%'></div></div></td><td>${pct}%</td>`;
+					tbody.appendChild(tr);
+				}
+				if (tbody.firstElementChild) tbody.firstElementChild.classList.add('highlight');
+				probsTable.style.display = entries.length ? 'table' : 'none';
+			} catch (err) {
+				result.innerHTML = '<span class="small" style="color:#fca5a5">Prediction failed. See console.</span>';
+				console.error(err);
+			} finally {
+				predictBtn.disabled = false; predictBtn.textContent = 'Predict';
+			}
+		});
+
+		resetBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			fileInput.value = '';
+			preview.style.display = 'none'; preview.src = '';
+			filenameEl.textContent = '';
+			result.style.display = 'none'; result.textContent = '';
+			tbody.innerHTML = ''; probsTable.style.display = 'none';
+			predictBtn.disabled = true;
+		});
+	})();
+	</script>
+</body>
+</html>

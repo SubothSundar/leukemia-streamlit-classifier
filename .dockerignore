@@ -1,0 +1,11 @@
+MyData
+__pycache__
+*.pyc
+.DS_Store
+.git
+.gitignore
+venv
+.venv
+*.ipynb_checkpoints
+*.log
+
