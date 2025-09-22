@@ -10,7 +10,7 @@ from PIL import Image
 import tensorflow as tf
 
 
-MODEL_PATH = os.environ.get("MODEL_PATH", "model.h5")
+MODEL_PATH = os.environ.get("MODEL_PATH", "model2.keras")
 LABELS_PATH = os.environ.get("LABELS_PATH", "labels.txt")
 IMG_SIZE = int(os.environ.get("IMG_SIZE", "224"))
 
@@ -24,9 +24,16 @@ def load_labels(path: str) -> List[str]:
 
 
 def load_model(path: str):
-	if not os.path.exists(path):
-		return None
-	return tf.keras.models.load_model(path)
+	# Prefer provided path; if missing, try common fallbacks
+	candidates = [
+		path,
+		"model2.keras",
+		"model.h5",
+	]
+	for p in candidates:
+		if p and os.path.exists(p):
+			return tf.keras.models.load_model(p)
+	return None
 
 
 def preprocess_image_bytes(file_bytes: bytes, target_size: int = 224) -> np.ndarray:
