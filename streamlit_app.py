@@ -4,6 +4,7 @@ from typing import List
 
 import numpy as np
 import requests
+import gdown
 import streamlit as st
 import tensorflow as tf
 from PIL import Image
@@ -22,12 +23,16 @@ def _download_model_if_needed(url: str | None, target_path: str) -> None:
 		return
 	try:
 		with st.status("Downloading model...", expanded=False):
-			with requests.get(url, stream=True, timeout=60) as r:
-				r.raise_for_status()
-				with open(target_path, "wb") as f:
-					for chunk in r.iter_content(chunk_size=1024 * 1024):
-						if chunk:
-							f.write(chunk)
+			if "drive.google.com" in url:
+				# Use gdown for Google Drive (handles confirmation tokens)
+				gdown.download(url, target_path, quiet=False, fuzzy=True)
+			else:
+				with requests.get(url, stream=True, timeout=60) as r:
+					r.raise_for_status()
+					with open(target_path, "wb") as f:
+						for chunk in r.iter_content(chunk_size=1024 * 1024):
+							if chunk:
+								f.write(chunk)
 	except Exception as e:
 		st.error(f"Failed to download model: {e}")
 
