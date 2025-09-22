@@ -38,7 +38,8 @@ def load_model(path: str):
 def preprocess_image_bytes(file_bytes: bytes, target_size: int = 224) -> np.ndarray:
 	image = Image.open(io.BytesIO(file_bytes)).convert("RGB")
 	image = image.resize((target_size, target_size))
-	array = np.asarray(image).astype("float32") / 255.0
+	# Do NOT divide by 255 here; the model contains a Rescaling(1/255) layer
+	array = np.asarray(image).astype("float32")
 	array = np.expand_dims(array, axis=0)
 	return array
 

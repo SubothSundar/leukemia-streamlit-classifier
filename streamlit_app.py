@@ -82,7 +82,8 @@ def load_labels(path: str) -> List[str]:
 
 def preprocess_image(image: Image.Image, target_size: int) -> np.ndarray:
 	image = image.convert("RGB").resize((target_size, target_size))
-	array = np.asarray(image).astype("float32") / 255.0
+	# Do NOT divide by 255 here; the model has a Rescaling(1/255) layer
+	array = np.asarray(image).astype("float32")
 	array = np.expand_dims(array, axis=0)
 	return array
 
