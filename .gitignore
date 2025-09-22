@@ -16,3 +16,4 @@ dist/
 model.h5
 *.h5
 *.keras
+!model2.keras
